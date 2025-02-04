@@ -1,0 +1,74 @@
+[
+    {
+        "text": "вол",
+        "left": 13,
+        "top": 14,
+        "width": 22,
+        "height": 7,
+        "confidence": 95
+    },
+    {
+        "text": "может",
+        "left": 44,
+        "top": 14,
+        "width": 40,
+        "height": 7,
+        "confidence": 96
+    },
+    {
+        "text": "но",
+        "left": 93,
+        "top": 14,
+        "width": 15,
+        "height": 7,
+        "confidence": 96
+    },
+    {
+        "text": "не",
+        "left": 117,
+        "top": 14,
+        "width": 15,
+        "height": 7,
+        "confidence": 96
+    },
+    {
+        "text": "может",
+        "left": 140,
+        "top": 14,
+        "width": 40,
+        "height": 7,
+        "confidence": 93
+    },
+    {
+        "text": "то",
+        "left": 12,
+        "top": 50,
+        "width": 16,
+        "height": 7,
+        "confidence": 91
+    },
+    {
+        "text": "что",
+        "left": 37,
+        "top": 50,
+        "width": 23,
+        "height": 7,
+        "confidence": 96
+    },
+    {
+        "text": "может",
+        "left": 68,
+        "top": 50,
+        "width": 40,
+        "height": 7,
+        "confidence": 96
+    },
+    {
+        "text": "волк",
+        "left": 117,
+        "top": 50,
+        "width": 31,
+        "height": 7,
+        "confidence": 96
+    }
+]
