@@ -1,50 +1,56 @@
 from fastapi import FastAPI, Form, HTTPException
-from fastapi.responses import HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from fastapi import Request
 from fastapi.templating import Jinja2Templates
+import os
+import shutil
 
 app = FastAPI()
 
 templates = Jinja2Templates(directory="templates")
 
-# templates/index.html:
-# <!DOCTYPE html>
-# <html>
-# <head>
-#     <title>Subtraction Calculator</title>
-# </head>
-# <body>
-#     <h1>Subtraction Calculator</h1>
-#     <form action="/subtract" method="post">
-#         <label for="num1">Number 1:</label>
-#         <input type="number" id="num1" name="num1" required><br><br>
-
-#         <label for="num2">Number 2:</label>
-#         <input type="number" id="num2" name="num2" required><br><br>
-
-#         <button type="submit">Subtract</button>
-#     </form>
-
-#     {% if result %}
-#         <h2>Result: {{ result }}</h2>
-#     {% endif %}
-# </body>
-# </html>
-
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request, "result": None})
+    return templates.TemplateResponse("index.html", {"request": request})
 
 
-@app.post("/subtract", response_class=HTMLResponse)
-async def subtract(request: Request, num1: float = Form(...), num2: float = Form(...)):
+@app.post("/copy")
+async def copy_file(request: Request, file_path: str = Form(...)):
+    """
+    Копирует файл и отдает его на скачивание.
+    """
     try:
-        result = num1 - num2
-        return templates.TemplateResponse("index.html", {"request": request, "result": result})
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid input: Please enter numbers only.")
+        # Проверяем, существует ли файл
+        if not os.path.exists(file_path):
+            raise HTTPException(status_code=400, detail="File not found")
+
+        # Получаем расширение файла
+        file_extension = os.path.splitext(file_path)[1]
+
+        # Создаем новое имя файла
+        new_file_name = f"12345{file_extension}"
+        new_file_path = os.path.join(".", new_file_name)  # Создаем в текущей директории для простоты
+
+        # Копируем файл с новым именем
+        try:
+            shutil.copy2(file_path, new_file_path)  # copy2 сохраняет метаданные (время и т.п.)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error copying file: {e}")
+
+
+        # Возвращаем файл на скачивание
+        return FileResponse(
+            path=new_file_path,
+            filename=new_file_name,
+            media_type="application/octet-stream",  # Универсальный тип для скачивания
+            headers={"Content-Disposition": f"attachment; filename={new_file_name}"},  # Указываем имя файла для скачивания
+        )
+
+    except HTTPException as e:
+         return templates.TemplateResponse("index.html", {"request": request, "error_message": e.detail}, status_code=e.status_code)
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"An error occurred: {e}")
+        return templates.TemplateResponse("index.html", {"request": request, "error_message": f"An unexpected error occurred: {e}"}, status_code=500)
 
 if __name__ == "__main__":
     import uvicorn
