@@ -17,7 +17,7 @@ def ocr_image_to_json(image_path):
             return
 
         # Настройка пути к tesseract
-        pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+        pytesseract.pytesseract.tesseract_cmd = r'C:\\Program Files\\Tesseract-OCR\\tesseract.exe'
 
         # Распознавание текста с указанием языков
         image = Image.open(image_path)
