@@ -12,23 +12,6 @@ app = FastAPI()
 
 templates = Jinja2Templates(directory="templates")
 
-# templates/index.html:
-# <!DOCTYPE html>
-# <html>
-# <head>
-#     <title>OCR to JSON</title>
-# </head>
-# <body>
-#     <h1>OCR to JSON</h1>
-#     <form action="/ocr" method="post">
-#         <label for="image_path">Image Path:</label>
-#         <input type="text" id="image_path" name="image_path" required><br><br>
-#
-#         <button type="submit">Process Image</button>
-#     </form>
-# </body>
-# </html>
-
 def ocr_image_to_json(image_path):
     """
     Распознает текст на изображении, сохраняет координаты и текст в JSON файл.
