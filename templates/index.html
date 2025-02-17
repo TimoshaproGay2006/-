@@ -1,19 +1,25 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>OCR to JSON</title>
+    <title>перевод а JSON</title>
 </head>
 <body>
-    <h1>OCR to JSON</h1>
+    <h1>перевод в JSON</h1>
     <form action="/ocr" method="post" enctype="multipart/form-data">
-        <label for="image">Upload Image:</label>
+        <label for="image">путь к файлу:</label>
         <input type="file" id="image" name="image" accept="image/*" required><br><br>
 
-        <button type="submit">Process Image</button>
+        <button type="submit">старт</button>
     </form>
 
     {% if error_message %}
         <p style="color: red;">Error: {{ error_message }}</p>
+    {% endif %}
+
+    {% if result %}
+        <h2>Extracted Text:</h2>
+        <pre>{{ result }}</pre>
+        <a href="{{ json_filename }}" download>скачять JSON File</a>
     {% endif %}
 </body>
 </html>
