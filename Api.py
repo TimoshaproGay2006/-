@@ -1,5 +1,5 @@
-from fastapi import FastAPI, Form, HTTPException
-from fastapi.responses import FileResponse, HTMLResponse
+from fastapi import FastAPI, Form, HTTPException, UploadFile, File
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi import Request
 from fastapi.templating import Jinja2Templates
 import os
@@ -7,28 +7,48 @@ import shutil
 import pytesseract
 from PIL import Image
 import json
+from typing import List
 
 app = FastAPI()
 
 templates = Jinja2Templates(directory="templates")
 
-def ocr_image_to_json(image_path):
+# templates/index.html
+# <!DOCTYPE html>
+# <html>
+# <head>
+#     <title>OCR to JSON</title>
+# </head>
+# <body>
+#     <h1>OCR to JSON</h1>
+#     <form action="/ocr" method="post" enctype="multipart/form-data">
+#         <label for="image">Upload Image:</label>
+#         <input type="file" id="image" name="image" accept="image/*" required><br><br>
+#
+#         <button type="submit">Process Image</button>
+#     </form>
+#
+#     {% if error_message %}
+#         <p style="color: red;">Error: {{ error_message }}</p>
+#     {% endif %}
+# </body>
+# </html>
+
+def ocr_image_to_json(image_file):
     """
-    Распознает текст на изображении, сохраняет координаты и текст в JSON файл.
+    Распознает текст на изображении из UploadFile, возвращает JSON данные.
 
     Args:
-        image_path (str): Путь к изображению.
+        image_file (UploadFile): Загруженный файл изображения.
     """
     try:
-        # Проверка, существует ли файл
-        if not os.path.exists(image_path):
-            raise FileNotFoundError(f"Image file not found at '{image_path}'")
+        # Чтение изображения из UploadFile
+        image = Image.open(image_file.file)
 
-        # Настройка пути к tesseract
+        # ***Укажите путь к tesseract.exe здесь***
         pytesseract.pytesseract.tesseract_cmd = r'C:\\Program Files\\Tesseract-OCR\\tesseract.exe'
 
         # Распознавание текста с указанием языков
-        image = Image.open(image_path)
         data = pytesseract.image_to_data(image, output_type=pytesseract.Output.DICT, lang='rus+eng')
 
         # Формирование JSON структуры
@@ -44,24 +64,8 @@ def ocr_image_to_json(image_path):
                     'confidence': data['conf'][i]
                 })
 
-        # Определение имени JSON файла
-        base_name = os.path.splitext(os.path.basename(image_path))[0]
-        json_file_name = f'{base_name}.json'
+        return json_data
 
-        # Получение пути к папке, где находится скрипт
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-
-        # Формирование полного пути к JSON файлу
-        json_file_path = os.path.join(script_dir, json_file_name)
-
-        # Запись JSON данных в файл
-        with open(json_file_path, 'w', encoding='utf-8') as f:
-            json.dump(json_data, f, indent=4, ensure_ascii=False)
-
-        return json_file_path  # Возвращаем путь к созданному JSON файлу
-
-    except FileNotFoundError as e:
-        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"An error occurred during OCR: {e}")
 
@@ -71,27 +75,25 @@ async def read_root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 
-@app.post("/ocr")
-async def process_image(request: Request, image_path: str = Form(...)):
+@app.post("/ocr", response_class=JSONResponse)
+async def process_image(request: Request, image: UploadFile = File(...)):
     """
-    Получает путь к изображению, выполняет OCR и возвращает JSON файл на скачивание.
+    Получает изображение, выполняет OCR и возвращает JSON данные.
     """
     try:
-        json_file_path = ocr_image_to_json(image_path)  # Вызываем функцию OCR
+        if not image.content_type.startswith("image/"):
+            raise HTTPException(status_code=400, detail="Invalid file type. Please upload an image.")
 
-        # Возвращаем файл на скачивание
-        return FileResponse(
-            path=json_file_path,
-            filename=os.path.basename(json_file_path),
-            media_type="application/json",
-            headers={"Content-Disposition": f"attachment; filename={os.path.basename(json_file_path)}"},
-        )
+        json_data = ocr_image_to_json(image)  # Вызываем функцию OCR
+
+        return json_data
 
     except HTTPException as e:
-        return templates.TemplateResponse("index.html", {"request": request, "error_message": e.detail}, status_code=e.status_code)
+        return JSONResponse(content={"error_message": e.detail}, status_code=e.status_code)
 
     except Exception as e:
-        return templates.TemplateResponse("index.html", {"request": request, "error_message": f"An unexpected error occurred: {e}"}, status_code=500)
+        return JSONResponse(content={"error_message": f"An unexpected error occurred: {str(e)}"}, status_code=500)
+
 
 if __name__ == "__main__":
     import uvicorn
