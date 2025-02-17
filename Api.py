@@ -17,7 +17,7 @@ templates = Jinja2Templates(directory="templates")
 def ocr_image_to_json(image_file):
     try:
         image = Image.open(image_file.file)
-        pytesseract.pytesseract.tesseract_cmd = r'C:\\Program Files\\Tesseract-OCR\\tesseract.exe' #<-----
+        pytesseract.pytesseract.tesseract_cmd = r'C:\\Program Files\\Tesseract-OCR\\tesseract.exe' #<----- путь к тесеракту
         data = pytesseract.image_to_data(image, output_type=pytesseract.Output.DICT, lang='rus+eng')
 
         json_data = []
