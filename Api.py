@@ -17,7 +17,7 @@ templates = Jinja2Templates(directory="templates")
 def ocr_image_to_json(image_file):
     try:
         image = Image.open(image_file.file)
-        pytesseract.pytesseract.tesseract_cmd = r'C:\\Program Files\\Tesseract-OCR\\tesseract.exe'
+        pytesseract.pytesseract.tesseract_cmd = r'C:\\Program Files\\Tesseract-OCR\\tesseract.exe' #<-----
         data = pytesseract.image_to_data(image, output_type=pytesseract.Output.DICT, lang='rus+eng')
 
         json_data = []
@@ -69,7 +69,9 @@ async def get_json_file():
     json_filename = "output.json"
     if os.path.exists(json_filename):
         response = FileResponse(json_filename)
-        # Запланируем удаление файла после отправки
+        
+
+
         asyncio.get_event_loop().call_later(0.1, os.remove, json_filename)
         return response
     else:
